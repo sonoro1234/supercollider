@@ -275,6 +275,7 @@ static bool set_realtime_priority(int thread_index)
 
 #elif _WIN32
         int priority = thread_priority_interval_rt().second;
+		success = true;		 
 #else
         int min, max;
         boost::tie(min, max) = thread_priority_interval_rt();
@@ -287,8 +288,17 @@ static bool set_realtime_priority(int thread_index)
 #endif
     }
 
-    if (!success)
+    if (!success){
         std::cout << "Warning: cannot raise thread priority" << std::endl;
+#ifdef _WIN32
+		char *s;
+        FormatMessage( FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+                       nullptr, GetLastError() , MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (char*)&s, 0, NULL );
+
+        std::cout << "*** ERROR: GetProcAddress err " << s << std::endl;
+        LocalFree( s );
+#endif
+	}
 
     return success;
 }
